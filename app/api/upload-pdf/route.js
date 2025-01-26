@@ -1,26 +1,19 @@
-import pdfParse from 'pdf-parse';
+import fs from 'fs';
+import path from 'path';
 
-export async function POST(req) {
+export default async function handler(req, res) {
+  const filePath = path.join(process.cwd(), 'test', 'data', '05-versions-space.pdf');
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+
   try {
-    // Parse form data
-    const formData = await req.formData();
-    const file = formData.get('file');
-    
-    if (!file) {
-      return new Response('No file uploaded', { status: 400 });
-    }
-
-    // Parse the PDF
-    const buffer = await file.arrayBuffer();
-    const data = await pdfParse(buffer);
-
-    // Return the extracted text as a response
-    return new Response(JSON.stringify({ text: data.text }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Error parsing PDF:', error);
-    return new Response('Failed to parse PDF', { status: 500 });
+    const fileData = fs.readFileSync(filePath);
+    // Process the file data
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('Error reading the file:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
